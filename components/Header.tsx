@@ -1,5 +1,6 @@
 import Link from "next/link";
 import React from "react";
+import Menu from "./Menu";
 
 const Header = () => {
   return (
@@ -8,18 +9,7 @@ const Header = () => {
         <Link href="/" className="btn btn-ghost text-lg ">
           Amazone Clone
         </Link>
-        <ul className="flex">
-          <li>
-            <Link className="btn btn-ghost rounded-btn" href="/cart">
-              Cart
-            </Link>
-          </li>
-          <li>
-            <Link className="btn btn-ghost rounded-btn" href="/sign-in">
-              Sign in
-            </Link>
-          </li>
-        </ul>
+        <Menu />
       </nav>
     </header>
   );
