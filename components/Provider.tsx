@@ -1,5 +1,6 @@
 import { SessionProvider } from 'next-auth/react'
 import { auth } from '@/lib/auth'
+import ClientProviders from './ClientProviders'
 
 export default async function Providers({
   children,
@@ -10,7 +11,7 @@ export default async function Providers({
 
   return (
     <SessionProvider session={session}>
-      {children}
+      <ClientProviders>{children}</ClientProviders>
     </SessionProvider>
   )
 }
