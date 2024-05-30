@@ -34,8 +34,15 @@ export const cartStore = create<Cart>()(
 );
 
 export default function useCartService() {
-  const { items, itemsPrice, taxPrice, shippingPrice, totalPrice } =
-    cartStore();
+  const {
+    items,
+    itemsPrice,
+    taxPrice,
+    shippingPrice,
+    totalPrice,
+    paymentMethod,
+    shippingAddress,
+  } = cartStore();
 
   return {
     items,
@@ -43,6 +50,8 @@ export default function useCartService() {
     taxPrice,
     shippingPrice,
     totalPrice,
+    paymentMethod,
+    shippingAddress,
     increase: (item: OrderItem) => {
       const exist = items.find((x: { slug: string }) => x.slug === item.slug);
       const updateCartItems: OrderItem[] = exist
@@ -83,7 +92,7 @@ export default function useCartService() {
     saveShippingAddress: (shippingAddress: ShippingAddress) => {
       cartStore.setState({ shippingAddress });
     },
-    setPaymentMethod: (paymentMethod: string) => {
+    savePaymentMethod: (paymentMethod: string) => {
       cartStore.setState({ paymentMethod });
     },
   };
