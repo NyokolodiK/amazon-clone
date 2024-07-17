@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { OrderItem, ShippingAddress } from "../models/OrderModel";
 import { round2 } from "../utils";
+import { OrderItem, ShippingAddress } from "../models/OrderModel";
 import { persist } from "zustand/middleware";
 
 type Cart = {
@@ -9,10 +9,10 @@ type Cart = {
   taxPrice: number;
   shippingPrice: number;
   totalPrice: number;
+
   paymentMethod: string;
   shippingAddress: ShippingAddress;
 };
-
 const initialState: Cart = {
   items: [],
   itemsPrice: 0,
@@ -30,7 +30,9 @@ const initialState: Cart = {
 };
 
 export const cartStore = create<Cart>()(
-  persist(() => initialState, { name: "cartStore" })
+  persist(() => initialState, {
+    name: "cartStore",
+  })
 );
 
 export default function useCartService() {
@@ -43,7 +45,6 @@ export default function useCartService() {
     paymentMethod,
     shippingAddress,
   } = cartStore();
-
   return {
     items,
     itemsPrice,
@@ -53,63 +54,66 @@ export default function useCartService() {
     paymentMethod,
     shippingAddress,
     increase: (item: OrderItem) => {
-      const exist = items.find((x: { slug: string }) => x.slug === item.slug);
-      const updateCartItems: OrderItem[] = exist
-        ? (items.map((x: { slug: string }) =>
+      const exist = items.find((x) => x.slug === item.slug);
+      const updatedCartItems = exist
+        ? items.map((x) =>
             x.slug === item.slug ? { ...exist, qty: exist.qty + 1 } : x
-          ) as OrderItem[])
+          )
         : [...items, { ...item, qty: 1 }];
-      const { itemsPrice, taxPrice, shippingPrice, totalPrice } =
-        calculatePrice(updateCartItems as OrderItem[]);
+      const { itemsPrice, shippingPrice, taxPrice, totalPrice } =
+        calcPrice(updatedCartItems);
       cartStore.setState({
-        items: updateCartItems,
+        items: updatedCartItems,
         itemsPrice,
-        taxPrice,
         shippingPrice,
+        taxPrice,
         totalPrice,
       });
     },
     decrease: (item: OrderItem) => {
-      const exist = items.find((x: { slug: string }) => x.slug === item.slug);
+      const exist = items.find((x) => x.slug === item.slug);
       if (!exist) return;
-
-      const updateCartItems: OrderItem[] =
+      const updatedCartItems =
         exist.qty === 1
-          ? items.filter((x: { slug: string }) => x.slug !== item.slug)
-          : (items.map((x: { slug: string }) =>
-              x.slug === item.slug ? { ...exist, qty: exist.qty - 1 } : x
-            ) as OrderItem[]);
-      const { itemsPrice, taxPrice, shippingPrice, totalPrice } =
-        calculatePrice(updateCartItems as OrderItem[]);
+          ? items.filter((x: OrderItem) => x.slug !== item.slug)
+          : items.map((x) =>
+              item.slug ? { ...exist, qty: exist.qty - 1 } : x
+            );
+      const { itemsPrice, shippingPrice, taxPrice, totalPrice } =
+        calcPrice(updatedCartItems);
       cartStore.setState({
-        items: updateCartItems,
+        items: updatedCartItems,
         itemsPrice,
-        taxPrice,
         shippingPrice,
+        taxPrice,
         totalPrice,
       });
     },
-    saveShippingAddress: (shippingAddress: ShippingAddress) => {
-      cartStore.setState({ shippingAddress });
+    saveShippingAddrress: (shippingAddress: ShippingAddress) => {
+      cartStore.setState({
+        shippingAddress,
+      });
     },
     savePaymentMethod: (paymentMethod: string) => {
-      cartStore.setState({ paymentMethod });
+      cartStore.setState({
+        paymentMethod,
+      });
     },
     clear: () => {
-      cartStore.setState({ items: [] });
+      cartStore.setState({
+        items: [],
+      });
     },
+    init: () => cartStore.setState(initialState),
   };
 }
 
-const calculatePrice = (items: OrderItem[]) => {
+const calcPrice = (items: OrderItem[]) => {
   const itemsPrice = round2(
-    items.reduce(
-      (a: number, c: { price: number; qty: number }) => a + c.price * c.qty,
-      0
-    )
-  );
-  const taxPrice = round2(itemsPrice * 0.15);
-  const shippingPrice = itemsPrice > 100 ? 0 : 100;
-  const totalPrice = round2(itemsPrice + taxPrice + shippingPrice);
-  return { itemsPrice, taxPrice, shippingPrice, totalPrice };
+      items.reduce((acc, item) => acc + item.price * item.qty, 0)
+    ),
+    shippingPrice = round2(itemsPrice > 100 ? 0 : 100),
+    taxPrice = round2(Number(0.15 * itemsPrice)),
+    totalPrice = round2(itemsPrice + shippingPrice + taxPrice);
+  return { itemsPrice, shippingPrice, taxPrice, totalPrice };
 };
